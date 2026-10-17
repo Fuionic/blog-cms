@@ -292,6 +292,23 @@ class PostApiTest extends IntegrationTest {
     }
 
     @Test
+    void publicBlogListUsesAdminSortAndDirectionParameters() throws Exception {
+        String alpha = createPost("Alpha", "Body.").path("id").asText();
+        String zulu = createPost("Zulu", "Body.").path("id").asText();
+        call(post("/api/v1/posts/" + alpha + "/publish")).andExpect(status().isOk());
+        call(post("/api/v1/posts/" + zulu + "/publish")).andExpect(status().isOk());
+
+        mockMvc.perform(get("/api/v1/blogs?sort=title&direction=desc"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data[0].title").value("Zulu"))
+                .andExpect(jsonPath("$.data[1].title").value("Alpha"));
+        mockMvc.perform(get("/api/v1/blogs?sort=title&direction=sideways"))
+                .andExpect(status().isBadRequest());
+        mockMvc.perform(get("/api/v1/blogs?sort=title&sort=wordCount&direction=desc"))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
     void countsCoverEveryStatus() throws Exception {
         createPost("Draft one", "x");
         String id = createPost("Published one", "y").path("id").asText();
