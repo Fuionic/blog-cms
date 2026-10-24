@@ -224,10 +224,11 @@ class PostApiTest extends IntegrationTest {
                 .andExpect(jsonPath("$.data[0].title").value("Spot instances"));
 
         call(get("/api/v1/posts?page=2147483647"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.meta.page").value(10000));
+                .andExpect(status().isBadRequest());
 
         call(get("/api/v1/posts?sort=password")).andExpect(status().isBadRequest());
+        call(get("/api/v1/posts?sort=title&sort=wordCount")).andExpect(status().isBadRequest());
+        call(get("/api/v1/posts?sort=title,asc")).andExpect(status().isBadRequest());
         call(get("/api/v1/posts?status=BOGUS")).andExpect(status().isBadRequest());
     }
 
@@ -310,6 +311,19 @@ class PostApiTest extends IntegrationTest {
                 .andExpect(status().isBadRequest());
         mockMvc.perform(get("/api/v1/blogs?sort=title&sort=wordCount&direction=desc"))
                 .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void publicBlogListDefaultsToNewestFirst() throws Exception {
+        String older = createPost("Older post", "Body.").path("id").asText();
+        call(post("/api/v1/posts/" + older + "/publish")).andExpect(status().isOk());
+        String newer = createPost("Newer post", "Body.").path("id").asText();
+        call(post("/api/v1/posts/" + newer + "/publish")).andExpect(status().isOk());
+
+        mockMvc.perform(get("/api/v1/blogs"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data[0].title").value("Newer post"))
+                .andExpect(jsonPath("$.data[1].title").value("Older post"));
     }
 
     @Test

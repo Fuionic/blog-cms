@@ -18,7 +18,6 @@ import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OrderColumn;
 import jakarta.persistence.Table;
 import jakarta.persistence.Version;
-import org.hibernate.annotations.BatchSize;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
 
@@ -106,7 +105,6 @@ public class Post {
     private long version;
 
     @ManyToMany
-    @BatchSize(size = 50)
     @JoinTable(name = "post_authors",
             joinColumns = @JoinColumn(name = "post_id"),
             inverseJoinColumns = @JoinColumn(name = "author_id"))
@@ -114,7 +112,6 @@ public class Post {
     private List<Author> authors = new ArrayList<>();
 
     @ManyToMany
-    @BatchSize(size = 50)
     @JoinTable(name = "post_tags",
             joinColumns = @JoinColumn(name = "post_id"),
             inverseJoinColumns = @JoinColumn(name = "tag_id"))

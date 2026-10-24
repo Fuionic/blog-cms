@@ -36,16 +36,9 @@ public class PublicBlogController {
             @RequestParam(required = false) String direction,
             @RequestParam(required = false) Integer page,
             @RequestParam(required = false) Integer size) {
-        if (sort != null && sort.size() > 1) {
-            throw ApiException.badRequest("BAD_REQUEST", "sort must contain one field");
-        }
-        String sortField = sort == null || sort.isEmpty() ? "publishedAt" : sort.get(0);
-        if (sortField.contains(",")) {
-            throw ApiException.badRequest("BAD_REQUEST", "sort must contain one field");
-        }
-        String sortDirection = direction == null ? "desc" : direction;
-        PostListQuery query = new PostListQuery(PostStatus.PUBLISHED, null, null, null,
-                sortField, sortDirection, page, size);
+        List<String> sortFields = sort == null || sort.isEmpty() ? List.of("publishedAt") : sort;
+        PostListQuery query = new PostListQuery(PostStatus.PUBLISHED, null, null, null, sortFields,
+                direction == null ? "desc" : direction, page, size);
         Page<PostSummaryResponse> resultPage = postService.list(query);
         List<PublicBlogSummaryResponse> blogs = resultPage.getContent().stream()
                 .map(PublicBlogSummaryResponse::of)
